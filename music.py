@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 import youtube_dl
-import time
 from collections import deque
 import asyncio
 
@@ -40,18 +39,6 @@ class music(commands.Cog):
             await ctx.send("Not connected to be disconected u noob!")
             return
         await ctx.voice_client.disconnect()
-
-    # @commands.command()
-    # async def search(self, ctx, *args):
-    #     search = " ".join(args)
-    #     with youtube_dl.YoutubeDL(self.OPTIONS["YDL"]) as ydl:
-    #         songs = ydl.extract_info(f"ytsearch:{search}", download=False)["entries"]
-    #         print(len(songs))
-    #         for i, s in enumerate(songs):
-    #             info = s
-    #             print(info)
-    #             await ctx.send(f"{i}. \"{info['track']}\", \"{info['artist']}\"")
-    #     pass
 
     async def play_next(self, ctx):
         if self.song_queue == []:
@@ -128,6 +115,17 @@ class music(commands.Cog):
     async def empty(self, ctx):
         self.song_queue = []
         await ctx.send("Queue emptied")
+
+    @commands.command()
+    async def show(self, ctx):
+        if self.song_queue == []:
+            await ctx.send("Queue is empty")
+            return
+        await ctx.send("Queue:\n")
+        message = ""
+        for i, song in enumerate(self.song_queue):
+            message += f"{i+1}. \"{song['title']}\" - {song['channel']}\n"
+        await ctx.send(message)
 
 
 def setup(client):
