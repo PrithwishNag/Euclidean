@@ -1,18 +1,18 @@
 import discord
 from discord.ext import commands
-import music
+import music, playlist
 
 TOKEN = "ODk0ODA1NTM1MjY0NzM5MzQ5.YVvWmA.8m2QQ_rvN1tq0S7wdG4VEkDjvzI"
 prefix = "&"
 client = commands.Bot(command_prefix=prefix, intents=discord.Intents.all())
 
-cogs = [music]
+cogs = [music, playlist]
 for i, c in enumerate(cogs):
     c.setup(client)
 
 
 @client.command
-async def help(self, ctx):
+async def help(ctx):
     docs = f"""Euclidean: Music Bot\n
     Prefix: {prefix}\n"""
     music_docs = {
