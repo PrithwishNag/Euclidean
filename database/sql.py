@@ -3,7 +3,7 @@ import utils
 
 
 def create_connection(db_file):
-    return utils.connection.initiate()
+    return utils.connection.initiate(db_file)
 
 
 def create_table(conn, sql):
@@ -22,26 +22,26 @@ def main():
                     id text PRIMARY KEY
                 );""",
         "playlist": """CREATE TABLE IF NOT EXISTS playlist (
-                        id integer PRIMARY KEY AUTOINCREMENT,
+                        id text PRIMARY KEY,
                         name text NOT NULL
                     );""",
         "song": """CREATE TABLE IF NOT EXISTS song (
-                    id integer PRIMARY KEY AUTOINCREMENT,
+                    id text PRIMARY KEY,
                     title text NOT NULL,
                     channel text NOT NULL,
                     url text NOT NULL
                 );""",
         "user-playlist": """CREATE TABLE IF NOT EXISTS userplaylist (
                             id integer PRIMARY KEY AUTOINCREMENT,
-                            user_id integer NOT NULL,
-                            playlist_id integer NOT NULL,
+                            user_id text NOT NULL,
+                            playlist_id text NOT NULL,
                             FOREIGN KEY (user_id) REFERENCES user (id),
                             FOREIGN KEY (playlist_id) REFERENCES playlist (id)
                         );""",
         "playlist-song": """CREATE TABLE IF NOT EXISTS playlistsong (
                             id integer PRIMARY KEY AUTOINCREMENT,
-                            playlist_id integer NOT NULL,
-                            song_id integer NOT NULL,
+                            playlist_id text NOT NULL,
+                            song_id text NOT NULL,
                             FOREIGN KEY (playlist_id) REFERENCES playlist (id),
                             FOREIGN KEY (song_id) REFERENCES song (id)
                         );""",

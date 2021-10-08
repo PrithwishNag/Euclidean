@@ -10,12 +10,10 @@ class playlist(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.details = {}
-        utils.connection.initiate()
 
     @commands.command()
     async def playlist(self, ctx, *arg):
         print(ctx.author)
-        # self.
         print(arg)
 
 

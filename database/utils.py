@@ -1,4 +1,5 @@
 import sqlite3
+import uuid
 
 
 class connection:
@@ -18,13 +19,47 @@ class playlistUtils:
         self.playlist = playlist  # Selected playlist
 
     @staticmethod
-    def addPlaylist(author):
+    def addPlaylist(author, playlist):
         try:
             c = connection.conn.cursor()
-            c.execute("")
+            unique_id = str(uuid.uuid1().int)
+            c.execute(
+                "INSERT INTO playlist(id, name) VALUES(?, ?)",
+                (
+                    unique_id,
+                    playlist,
+                ),
+            )
+            c.execute(
+                "INSERT INTO userplaylist(user_id, playlist_id) VALUES(?, ?)",
+                (
+                    author,
+                    unique_id,
+                ),
+            )
+            connection.conn.commit()
             return True
         except Exception as e:
+            print(e)
             return False
+
+    # @staticmethod
+    # def delPlaylist(author, playlist):
+    #     try:
+    #         c = connection.conn.cursor()
+    #         c.execute("")
+    #         c.execute(
+    #             "INSERT INTO userplaylist(user_id, playlist_id) VALUES(?, ?)",
+    #             (
+    #                 author,
+    #                 unique_id,
+    #             ),
+    #         )
+    #         connection.conn.commit()
+    #         return True
+    #     except Exception as e:
+    #         print(e)
+    #         return False
 
     @staticmethod
     def getPlaylists(author):
@@ -32,6 +67,7 @@ class playlistUtils:
             c = connection.conn.cursor()
             return c.execute("")
         except Exception as e:
+            print(e)
             return []
 
     def addSong(self, song):
