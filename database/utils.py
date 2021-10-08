@@ -59,11 +59,50 @@ class playlistUtils:
             print(e)
             return []
 
+    @staticmethod
+    def existsSong(song):
+        try:
+            c = connection.conn.cursor()
+            c.execute(
+                "SELECT id FROM song WHERE title=? AND channel=?",
+                (
+                    song["title"],
+                    song["channel"],
+                ),
+            )
+            return c.fetchone()
+        except Exception as e:
+            print(e)
+            return None
+
+    @staticmethod
+    def addSong(song):
+        try:
+            song_id = playlistUtils.existsSong(song)
+            if song_id is not None:
+                return song_id[0]
+            unique_id = str(uuid.uuid1().int)
+            c = connection.conn.cursor()
+            c.execute(
+                "INSERT INTO song(id, title, channel, url) VALUES(?, ?, ?, ?)",
+                (
+                    unique_id,
+                    song["title"],
+                    song["channel"],
+                    song["url"],
+                ),
+            )
+            connection.conn.commit()
+            return unique_id
+        except Exception as e:
+            print(e)
+            return None
+
     def __init__(self, author, playlist):
         self.author = author
         self.playlist = playlist  # Selected playlist
 
-    def exists(self):
+    def exists_(self):
         try:
             c = connection.conn.cursor()
             c.execute(
@@ -80,41 +119,11 @@ class playlistUtils:
             print(e)
             return False
 
-    def addSong(self, song):
-        try:
-            c = connection.conn.cursor()
-            c.execute(
-                "SELECT id FROM song WHERE title=? AND channel=?",
-                (
-                    song["title"],
-                    song["channel"],
-                ),
-            )
-            song_id = c.fetchone()
-            if song_id is not None:
-                return song_id[0]
-
-            unique_id = str(uuid.uuid1().int)
-            c.execute(
-                "INSERT INTO song(id, title, channel, url) VALUES(?, ?, ?, ?)",
-                (
-                    unique_id,
-                    song["title"],
-                    song["channel"],
-                    song["url"],
-                ),
-            )
-            connection.conn.commit()
-            return unique_id
-        except Exception as e:
-            print(e)
-            return None
-
-    def addSongToPlaylist(self, song):
+    def addSong_(self, song):
         try:
             c = connection.conn.cursor()
             unique_id = str(uuid.uuid1().int)
-            song_id = self.addSong(song)
+            song_id = playlistUtils.addSong(song)
             c.execute(
                 "SELECT id FROM userplaylist WHERE user_id=? AND playlist_name=?",
                 (
@@ -137,7 +146,19 @@ class playlistUtils:
             print(e)
             return False
 
-    def getSongs(self):
+    def getSongs_(self):
+        def convertToSong(rows):
+            # print(rows)
+            songs = []
+            for row in rows:
+                song = {}
+                song["id"] = row[0]
+                song["title"] = row[1]
+                song["channel"] = row[2]
+                song["url"] = row[3]
+                songs.append(song)
+            return songs
+
         try:
             c = connection.conn.cursor()
             c.execute(
@@ -149,13 +170,12 @@ class playlistUtils:
                     self.playlist,
                 ),
             )
-            rows = c.fetchall()
-            return rows
+            return convertToSong(c.fetchall())
         except Exception as e:
             print(e)
             return []
 
-    def removeSong(self, song_id):
+    def removeSong_(self, song_id):
         try:
             c = connection.conn.cursor()
             c.execute(

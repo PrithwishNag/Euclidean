@@ -64,13 +64,10 @@ class music(commands.Cog):
         song["channel"] = info["channel"]
         return song
 
-    @commands.command()
-    async def play(self, ctx, *args):
+    async def playSong(self, ctx, song):
         if ctx.voice_client is None and not await self.connect(ctx):
             return
 
-        search = " ".join(args)
-        song = self.ytsearch(search)
         source = await discord.FFmpegOpusAudio.from_probe(
             executable="C:/ffmpeg/bin/ffmpeg.exe",
             source=song["url"],
@@ -83,6 +80,12 @@ class music(commands.Cog):
             await self.play_next(ctx)
         else:
             await ctx.send(f"Added to queue \"{song['title']}\" - {song['channel']}")
+
+    @commands.command()
+    async def play(self, ctx, *args):
+        search = " ".join(args)
+        song = self.ytsearch(search)
+        await self.playSong(ctx, song)
 
     @commands.command()
     async def p(self, ctx, *args):

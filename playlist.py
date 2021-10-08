@@ -16,8 +16,7 @@ class playlist(commands.Cog):
     async def help(ctx, e):
         await ctx.send(e)
 
-    async def create(self, ctx, inst, *args):
-        playlist = args[0]
+    async def create(self, ctx, inst, playlist, *args):
         author = str(ctx.author)
         if utils.playlistUtils.addPlaylist(author, playlist):
             await ctx.send(f"{author}: playlist created")
@@ -26,11 +25,19 @@ class playlist(commands.Cog):
                 f"{author}: error occured while creating playlist or playlist already exists"
             )
 
-    async def select(self, ctx, inst, *args):
-        playlist = args[0]
+    async def delete(self, ctx, inst, playlist, *args):
+        author = str(ctx.author)
+        if utils.playlistUtils.delPlaylist(author, playlist):
+            await ctx.send(f"{author}: playlist, {playlist} deleted")
+        else:
+            await ctx.send(
+                f"{author}: error occured while creating playlist or playlist already exists"
+            )
+
+    async def select(self, ctx, inst, playlist, *args):
         author = str(ctx.author)
         ob = utils.playlistUtils(author, playlist)
-        if ob.exists():
+        if ob.exists_():
             if author in self.details:
                 del self.details[author]
             self.details[author] = ob
@@ -43,37 +50,36 @@ class playlist(commands.Cog):
         author = str(ctx.author)
         if author in self.details:
             return True
-        await ctx.send(author + ": select a playlist first")
+        await ctx.send(f"{author}: select a playlist first")
         return False
 
-    async def showOptions(self, ctx, inst, *args):
-        option = args[0]
+    async def showOptions(self, ctx, inst, option, *args):
         author = str(ctx.author)
 
         async def playlist():
             playlists = utils.playlistUtils.getPlaylists(author)
-            msg = author + "'s playlists:\n"
+            msg = f"{author}'s playlists:\n"
             for i, pl in enumerate(playlists):
-                msg += f"{i+1}. {pl[0]}"
+                msg += f"{i+1}. {pl[0]}\n"
             await ctx.send(msg)
 
-        async def song(display):
+        async def song(display=1):
             if not await self.isPlaylistSelected(ctx):
                 return
 
             details = self.details[author]
-            songs = details.getSongs()
+            songs = details.getSongs_()
             if display:
-                msg = author + "'s songs in playlist, " + details.playlist + "\n"
+                msg = f"{author}:'s songs in playlist, {details.playlist}\n"
                 for i, song in enumerate(songs):
-                    msg += f"{i+1}. {song[1]} - {song[2]}\n"
+                    msg += f"{i+1}. {song['title']} - {song['channel']}\n"
                 await ctx.send(msg)
             return songs
 
         return locals()[option]
 
     async def show(self, ctx, inst, *args):
-        await (await self.showOptions(ctx, inst, *args))(1)
+        await (await self.showOptions(ctx, inst, *args))()
 
     async def add(self, ctx, inst, *args):
         author = str(ctx.author)
@@ -83,7 +89,7 @@ class playlist(commands.Cog):
 
         for arg in args:
             song = self.playable.ytsearch(arg)
-            if self.details[author].addSongToPlaylist(song):
+            if self.details[author].addSong_(song):
                 await ctx.send(f"{author}: \"{song['title']}\" added")
             else:
                 await ctx.send(f"{author}: ERROR: \"{song['title']}\" not added")
@@ -106,18 +112,33 @@ class playlist(commands.Cog):
             for arg in args:
                 idx = int(arg)
                 song = songs[idx - 1]
-                title = song[1]
                 details = self.details[author]
-                details.removeSong(song[0])
+                details.removeSong_(song["id"])
                 await ctx.send(
-                    f"{author}: {title} is removed from playlist, {details.playlist}"
+                    f"{author}: {song['title']} is removed from playlist, {details.playlist}"
                 )
         except:
             await ctx.send("Provide integer index")
 
+    async def play(self, ctx, inst, *args):
+        author = str(ctx.author)
+
+        if not await self.isPlaylistSelected(ctx):
+            return
+
+        showOptionsSong = await self.showOptions(ctx, inst, "song")
+        songs = await showOptionsSong(0)
+        await ctx.send(
+            f"Playing {author}'s playlist, {self.details[author].playlist}\n"
+        )
+        for song in songs:
+            await self.playable.playSong(ctx, song)
+
     @commands.command()
     async def playlist(self, ctx, *args):
         import re
+
+        args = tuple(map(lambda arg: arg.lower(), args))
 
         try:
             pattern = r"-(.*)"
