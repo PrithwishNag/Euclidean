@@ -21,29 +21,26 @@ def main():
         "user": """CREATE TABLE IF NOT EXISTS user (
                     id text PRIMARY KEY
                 );""",
-        "playlist": """CREATE TABLE IF NOT EXISTS playlist (
-                        id text PRIMARY KEY,
-                        name text NOT NULL
-                    );""",
+        "user-playlist": """CREATE TABLE IF NOT EXISTS userplaylist (
+                            id text PRIMARY KEY,
+                            user_id text NOT NULL,
+                            playlist_name text NOT NULL,
+                            FOREIGN KEY (user_id) REFERENCES user (id),
+                            UNIQUE(user_id, playlist_name)
+                        );""",
         "song": """CREATE TABLE IF NOT EXISTS song (
                     id text PRIMARY KEY,
                     title text NOT NULL,
                     channel text NOT NULL,
                     url text NOT NULL
                 );""",
-        "user-playlist": """CREATE TABLE IF NOT EXISTS userplaylist (
-                            id integer PRIMARY KEY AUTOINCREMENT,
-                            user_id text NOT NULL,
-                            playlist_id text NOT NULL,
-                            FOREIGN KEY (user_id) REFERENCES user (id),
-                            FOREIGN KEY (playlist_id) REFERENCES playlist (id)
-                        );""",
         "playlist-song": """CREATE TABLE IF NOT EXISTS playlistsong (
-                            id integer PRIMARY KEY AUTOINCREMENT,
-                            playlist_id text NOT NULL,
+                            id text PRIMARY KEY,
+                            user_playlist_id text NOT NULL,
                             song_id text NOT NULL,
-                            FOREIGN KEY (playlist_id) REFERENCES playlist (id),
-                            FOREIGN KEY (song_id) REFERENCES song (id)
+                            FOREIGN KEY (user_playlist_id) REFERENCES userplaylist (id),
+                            FOREIGN KEY (song_id) REFERENCES song (id),
+                            UNIQUE(user_playlist_id, song_id)
                         );""",
     }
 

@@ -18,23 +18,47 @@ class playlistUtils:
         self.author = author
         self.playlist = playlist  # Selected playlist
 
+    def exists(self):
+        try:
+            c = connection.conn.cursor()
+            c.execute(
+                "SELECT id FROM userplaylist WHERE user_id=? AND playlist_name=?",
+                (
+                    self.author,
+                    self.playlist,
+                ),
+            )
+            if c.fetchall() == []:
+                return False
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
     @staticmethod
     def addPlaylist(author, playlist):
         try:
             c = connection.conn.cursor()
             unique_id = str(uuid.uuid1().int)
             c.execute(
-                "INSERT INTO playlist(id, name) VALUES(?, ?)",
-                (
-                    unique_id,
-                    playlist,
-                ),
+                "INSERT INTO userplaylist(id, user_id, playlist_name) VALUES(?, ?, ?)",
+                (unique_id, author, playlist),
             )
+            connection.conn.commit()
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
+    @staticmethod
+    def delPlaylist(author, playlist):
+        try:
+            c = connection.conn.cursor()
             c.execute(
-                "INSERT INTO userplaylist(user_id, playlist_id) VALUES(?, ?)",
+                "DELETE FROM userplaylist WHERE user_id=? AND playlist_name=?",
                 (
                     author,
-                    unique_id,
+                    playlist,
                 ),
             )
             connection.conn.commit()
@@ -43,29 +67,15 @@ class playlistUtils:
             print(e)
             return False
 
-    # @staticmethod
-    # def delPlaylist(author, playlist):
-    #     try:
-    #         c = connection.conn.cursor()
-    #         c.execute("")
-    #         c.execute(
-    #             "INSERT INTO userplaylist(user_id, playlist_id) VALUES(?, ?)",
-    #             (
-    #                 author,
-    #                 unique_id,
-    #             ),
-    #         )
-    #         connection.conn.commit()
-    #         return True
-    #     except Exception as e:
-    #         print(e)
-    #         return False
-
     @staticmethod
     def getPlaylists(author):
         try:
             c = connection.conn.cursor()
-            return c.execute("")
+            c.execute(
+                "SELECT playlist_name FROM userplaylist WHERE user_id=?", (author,)
+            )
+            rows = c.fetchall()
+            return rows
         except Exception as e:
             print(e)
             return []

@@ -11,7 +11,7 @@ cogs = [music, playlist]
 for i, c in enumerate(cogs):
     c.setup(client)
 
-database = "euclidean.db"
+database = "database/euclidean.db"
 utils.connection.initiate(database)
 
 
