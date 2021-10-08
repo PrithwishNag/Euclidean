@@ -32,7 +32,8 @@ def main():
                     id text PRIMARY KEY,
                     title text NOT NULL,
                     channel text NOT NULL,
-                    url text NOT NULL
+                    url text NOT NULL,
+                    UNIQUE(title, channel)
                 );""",
         "playlist-song": """CREATE TABLE IF NOT EXISTS playlistsong (
                             id text PRIMARY KEY,

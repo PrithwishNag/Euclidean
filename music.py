@@ -55,20 +55,27 @@ class music(commands.Cog):
             ),
         )
 
+    def ytsearch(self, search):
+        song = {}
+        info = self.ydl.extract_info(f"ytsearch:{search}", download=False)["entries"][0]
+        song["url"] = info["formats"][0]["url"]
+        song["title"] = info["title"]
+        song["channel"] = info["channel"]
+        return song
+
     @commands.command()
     async def play(self, ctx, *args):
         if ctx.voice_client is None and not await self.connect(ctx):
             return
 
         search = " ".join(args)
-        info = self.ydl.extract_info(f"ytsearch:{search}", download=False)["entries"][0]
-        url = info["formats"][0]["url"]
+        song = self.ytsearch(search)
         source = await discord.FFmpegOpusAudio.from_probe(
             executable="C:/ffmpeg/bin/ffmpeg.exe",
-            source=url,
+            source=song["url"],
             **self.OPTIONS["FFMPEG"],
         )
-        song = {"source": source, "title": info["title"], "channel": info["channel"]}
+        song = {"source": source, "title": song["title"], "channel": song["channel"]}
         self.song_queue.append(song)
 
         if not self.vc.is_playing() and not self.is_paused:

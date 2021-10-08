@@ -7,9 +7,13 @@ TOKEN = "ODk0ODA1NTM1MjY0NzM5MzQ5.YVvWmA.8m2QQ_rvN1tq0S7wdG4VEkDjvzI"
 prefix = "&"
 client = commands.Bot(command_prefix=prefix, intents=discord.Intents.all())
 
-cogs = [music, playlist]
-for i, c in enumerate(cogs):
-    c.setup(client)
+# cogs = [music, playlist]
+# for i, c in enumerate(cogs):
+#     c.setup(client)
+
+# Setup
+playable = music.setup(client)
+playlist.setup(client, playable)
 
 database = "database/euclidean.db"
 utils.connection.initiate(database)
