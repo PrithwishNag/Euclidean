@@ -41,7 +41,8 @@ class music(commands.Cog):
         await ctx.voice_client.disconnect()
 
     async def play_next(self, ctx):
-        if self.song_queue == []:
+        if not self.song_queue:
+            await self.disconnect(ctx)
             return
 
         song = self.song_queue[0]
