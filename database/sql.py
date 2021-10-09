@@ -25,22 +25,21 @@ def main():
                             id text PRIMARY KEY,
                             user_id text NOT NULL,
                             playlist_name text NOT NULL,
-                            FOREIGN KEY (user_id) REFERENCES user (id),
+                            FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
                             UNIQUE(user_id, playlist_name)
                         );""",
         "song": """CREATE TABLE IF NOT EXISTS song (
                     id text PRIMARY KEY,
                     title text NOT NULL,
                     channel text NOT NULL,
-                    url text NOT NULL,
                     UNIQUE(title, channel)
                 );""",
         "playlist-song": """CREATE TABLE IF NOT EXISTS playlistsong (
                             id text PRIMARY KEY,
                             user_playlist_id text NOT NULL,
                             song_id text NOT NULL,
-                            FOREIGN KEY (user_playlist_id) REFERENCES userplaylist (id),
-                            FOREIGN KEY (song_id) REFERENCES song (id),
+                            FOREIGN KEY (user_playlist_id) REFERENCES userplaylist (id) ON DELETE CASCADE,
+                            FOREIGN KEY (song_id) REFERENCES song (id) ON DELETE CASCADE,
                             UNIQUE(user_playlist_id, song_id)
                         );""",
     }

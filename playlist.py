@@ -128,13 +128,12 @@ class playlist(commands.Cog):
 
         showOptionsSong = await self.showOptions(ctx, inst, "song")
         songs = await showOptionsSong(0)
+
         await ctx.send(
             f"Playing {author}'s playlist, {self.details[author].playlist}\n"
         )
         for i, song in enumerate(songs):
-            # print(f"{i}:", song)
-            print("CALLED")
-            await self.playable.playSong(ctx, song)
+            await self.playable.playSong(ctx, song["title"])
 
     @commands.command()
     async def playlist(self, ctx, *args):

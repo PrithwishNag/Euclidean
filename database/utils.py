@@ -8,6 +8,8 @@ class connection:
     def initiate(db_file):
         try:
             connection.conn = sqlite3.connect(db_file)
+            connection.conn.execute("PRAGMA foreign_keys = ON")
+            connection.conn.commit()
         except Exception as e:
             print(e)
         return connection.conn
@@ -18,6 +20,11 @@ class playlistUtils:
     def addPlaylist(author, playlist):
         try:
             c = connection.conn.cursor()
+            c.execute(
+                "INSERT OR IGNORE INTO user(id) VALUES(?)",
+                (author,),
+            )
+            connection.conn.commit()
             unique_id = str(uuid.uuid1().int)
             c.execute(
                 "INSERT INTO userplaylist(id, user_id, playlist_name) VALUES(?, ?, ?)",
@@ -84,12 +91,11 @@ class playlistUtils:
             unique_id = str(uuid.uuid1().int)
             c = connection.conn.cursor()
             c.execute(
-                "INSERT INTO song(id, title, channel, url) VALUES(?, ?, ?, ?)",
+                "INSERT INTO song(id, title, channel) VALUES(?, ?, ?)",
                 (
                     unique_id,
                     song["title"],
                     song["channel"],
-                    song["url"],
                 ),
             )
             connection.conn.commit()
@@ -148,14 +154,12 @@ class playlistUtils:
 
     def getSongs_(self):
         def convertToSong(rows):
-            # print(rows)
             songs = []
             for row in rows:
                 song = {}
                 song["id"] = row[0]
                 song["title"] = row[1]
                 song["channel"] = row[2]
-                song["url"] = row[3]
                 songs.append(song)
             return songs
 
