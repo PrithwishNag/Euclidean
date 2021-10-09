@@ -131,7 +131,9 @@ class playlist(commands.Cog):
         await ctx.send(
             f"Playing {author}'s playlist, {self.details[author].playlist}\n"
         )
-        for song in songs:
+        for i, song in enumerate(songs):
+            # print(f"{i}:", song)
+            print("CALLED")
             await self.playable.playSong(ctx, song)
 
     @commands.command()

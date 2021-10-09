@@ -19,6 +19,7 @@ class music(commands.Cog):
         }
         self.ydl = youtube_dl.YoutubeDL(self.OPTIONS["YDL"])
         self.song_queue = deque()
+        self.lock = asyncio.Lock()
 
     @commands.command()
     async def connect(self, ctx):
@@ -33,17 +34,28 @@ class music(commands.Cog):
         self.vc = ctx.voice_client
         return 1
 
+    def reset(self):
+        self.vc = None
+        self.is_paused = False
+        del self.song_queue
+        self.song_queue = deque()
+
     @commands.command()
     async def disconnect(self, ctx):
+        print("DC")
         if ctx.voice_client is None:
             await ctx.send("Not connected to be disconected u noob!")
             return
+        self.reset()
         await ctx.voice_client.disconnect()
 
     async def play_next(self, ctx):
         if not self.song_queue:
-            await self.disconnect(ctx)
+            if self.vc is not None:
+                await self.disconnect(ctx)
             return
+
+        print(self.song_queue)
 
         song = self.song_queue[0]
         self.song_queue.popleft()
@@ -68,6 +80,8 @@ class music(commands.Cog):
         if ctx.voice_client is None and not await self.connect(ctx):
             return
 
+        print(song)
+
         source = await discord.FFmpegOpusAudio.from_probe(
             executable="C:/ffmpeg/bin/ffmpeg.exe",
             source=song["url"],
@@ -76,10 +90,14 @@ class music(commands.Cog):
         song = {"source": source, "title": song["title"], "channel": song["channel"]}
         self.song_queue.append(song)
 
-        if not self.vc.is_playing() and not self.is_paused:
-            await self.play_next(ctx)
-        else:
-            await ctx.send(f"Added to queue \"{song['title']}\" - {song['channel']}")
+        async with self.lock:
+            if not self.vc.is_playing() and not self.is_paused:
+                print("play next!!!!!!!!!")
+                await self.play_next(ctx)
+            else:
+                await ctx.send(
+                    f"Added to queue \"{song['title']}\" - {song['channel']}"
+                )
 
     @commands.command()
     async def play(self, ctx, *args):
