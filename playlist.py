@@ -76,7 +76,10 @@ class playlist(commands.Cog):
                 await ctx.send(msg)
             return songs
 
-        return locals()[option]
+        if option in locals():
+            return locals()[option]
+        else:
+            raise Exception(f"It's either -{inst} song or -{inst} playlist")
 
     async def show(self, ctx, inst, *args):
         await (await self.showOptions(ctx, inst, *args))()
@@ -149,6 +152,10 @@ class playlist(commands.Cog):
 
         except Exception as e:
             await playlist.help(ctx, e)
+
+    @commands.command()
+    async def pl(self, ctx, *args):
+        await self.playlist(ctx, *args)
 
 
 def setup(client, playable):

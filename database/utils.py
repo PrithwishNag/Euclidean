@@ -16,15 +16,28 @@ class connection:
 
 
 class playlistUtils:
+    limit = {"playlist": 2, "song": 100}
+
     @staticmethod
     def addPlaylist(author, playlist):
-        try:
+        def getPlaylistCount():
             c = connection.conn.cursor()
-            c.execute(
-                "INSERT OR IGNORE INTO user(id) VALUES(?)",
-                (author,),
+            c.execute("SELECT COUNT(*) FROM userplaylist WHERE user_id=?", (author,))
+            return c.fetchone()[0]
+
+        c = connection.conn.cursor()
+        c.execute(
+            "INSERT OR IGNORE INTO user(id) VALUES(?)",
+            (author,),
+        )
+        connection.conn.commit()
+
+        if getPlaylistCount() >= playlistUtils.limit["playlist"]:
+            raise Exception(
+                f"Oops! Cannot create more than {playlistUtils.limit['playlist']} playlists per author"
             )
-            connection.conn.commit()
+
+        try:
             unique_id = str(uuid.uuid1().int)
             c.execute(
                 "INSERT INTO userplaylist(id, user_id, playlist_name) VALUES(?, ?, ?)",
@@ -32,6 +45,7 @@ class playlistUtils:
             )
             connection.conn.commit()
             return True
+
         except Exception as e:
             print(e)
             return False
@@ -126,17 +140,32 @@ class playlistUtils:
             return False
 
     def addSong_(self, song):
-        try:
+        def getSongCount():
             c = connection.conn.cursor()
-            unique_id = str(uuid.uuid1().int)
-            song_id = playlistUtils.addSong(song)
             c.execute(
-                "SELECT id FROM userplaylist WHERE user_id=? AND playlist_name=?",
-                (
-                    self.author,
-                    self.playlist,
-                ),
+                """SELECT COUNT(*) FROM playlistsong WHERE user_playlist_id=
+                (SELECT id FROM userplaylist WHERE user_id=?)""",
+                (self.author,),
             )
+            return c.fetchone()[0]
+
+        c = connection.conn.cursor()
+        unique_id = str(uuid.uuid1().int)
+        song_id = playlistUtils.addSong(song)
+        c.execute(
+            "SELECT id FROM userplaylist WHERE user_id=? AND playlist_name=?",
+            (
+                self.author,
+                self.playlist,
+            ),
+        )
+
+        if getSongCount() >= self.limit["song"]:
+            raise Exception(
+                f"Oops! Cannot create more than {playlistUtils.limit['song']} songs per playlist"
+            )
+
+        try:
             user_playlist_id = c.fetchone()[0]
             c.execute(
                 "INSERT INTO playlistsong(id, user_playlist_id, song_id) VALUES(?, ?, ?)",
