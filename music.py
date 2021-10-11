@@ -45,14 +45,14 @@ class music(commands.Cog):
     async def connect(self, ctx):
         if ctx.author.voice is None:
             await ctx.send("Please join a voice channel.")
-            return 0
+            return False
         vc = ctx.author.voice.channel
         if ctx.voice_client is None:
             await vc.connect()
         else:
             await ctx.voice_client.move_to(vc)
         self.vc = ctx.voice_client
-        return 1
+        return True
 
     def reset(self):
         self.vc = None
@@ -102,7 +102,7 @@ class music(commands.Cog):
 
     async def playSong(self, ctx, search):
         if ctx.voice_client is None and not await self.connect(ctx):
-            return
+            return False
 
         self.search_queue.append(search)
 
@@ -111,6 +111,7 @@ class music(commands.Cog):
                 await self.play_next(ctx)
             else:
                 await ctx.send(f'Added to queue *{search}*')
+        return True
 
     @commands.command()
     async def play(self, ctx, *args):

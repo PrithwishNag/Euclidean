@@ -189,6 +189,30 @@ class playlist(commands.Cog):
             print(e)
             await ctx.send(f"{author}: Provide correct index for the playlist.")
 
+    def customisePlay(self, songs, *args):
+        import random
+        if not args: return songs
+
+        if args[0] == "shuffle":
+            random.shuffle(songs)
+        elif args[0] in ["rev", "reverse"]:
+            songs = songs[::-1]
+        elif args[0] == ["rand", "random"]:
+            if len(args) <= 1: songs = [random.choice(songs)]
+            elif args[1].isdigit():
+                count = int(args[1])
+                if count > 50: raise Exception("Cannot play more than 50 times.")
+                songs = random.choices(songs, k=count)
+        elif args[0].isdigit():
+            idx = int(args[0])
+            if len(args) <= 1: songs = [songs[idx-1]]
+            elif args[1].isdigit(): 
+                count = int(args[1])
+                if count > 50: raise Exception("Cannot play more than 50 times.")
+                songs = [songs[idx-1]]*count
+
+        return songs
+
     async def play(self, ctx, inst, *args):
         author = str(ctx.author)
 
@@ -202,27 +226,11 @@ class playlist(commands.Cog):
             f"{author}: Playing playlist, **{self.details[author].playlist}**\n"
         )
 
-        try:
-            import random
-            cmd = args[0]
-            if cmd == "shuffle":
-                random.shuffle(songs)
-            elif cmd in ["rev", "reverse"]:
-                songs = songs[::-1]
-            elif cmd == "random":
-                try:
-                    if args[1].isdigit():
-                        songs = random.choice(songs, k=int(args[1]))
-                    else:
-                        songs = [random.choice(songs)]
-                except:
-                    pass
-                return
-        except:
-            pass
+        songs = self.customisePlay(songs, *args)
 
         for i, song in enumerate(songs):
-            await self.playable.playSong(ctx, song["title"])
+            if not await self.playable.playSong(ctx, song["title"]):
+                break
 
     @commands.command()
     async def playlist(self, ctx, *args):

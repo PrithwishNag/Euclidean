@@ -16,7 +16,7 @@ class connection:
 
 
 class playlistUtils:
-    limit = {"playlist": 2, "song": 100}
+    limit = {"playlist": 5, "song": 100}
 
     @staticmethod
     def addPlaylist(author, playlist):
