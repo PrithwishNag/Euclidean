@@ -4,20 +4,73 @@ import youtube_dl
 from collections import deque
 import asyncio
 from database import utils
+from tabulate import tabulate
 
 
 class playlist(commands.Cog):
     def __init__(self, client, playable):
         self.client = client
+        self.addExtraCommands()
         self.playable = playable
         self.details = {}
 
-    @staticmethod
-    async def help(ctx, e):
+    async def error(self, ctx, e):
         await ctx.send(e)
+
+    async def help(self, ctx, *args):
+        head = "Playlist features:\nSyntax: (&playlist|&pl) (-<instruction>) (<arg>)\n"
+        headers = ["instruction", "description", "args"]
+        playlist_rows = [
+            ["-create | -c", "create a playlist", "<playlist name>"],
+            ["-delete | -d", "delete a playlist", "<playlist name>"],
+            ["-select | -s", "select a playlist", "<playlist name>"],
+            ["-show   | -l", "show playlists", '"playlist"'],
+        ]
+
+        song_rows = [
+            ["-add    | -a", "add song", "<song name>"],
+            ["-remove | -r", "remove song", "<index>"],
+            ["-show   | -l", "show playlists or songs", '"song"'],
+            ["-play   | -p", "play songs in playlist", "-"],
+            ["-help   | -h", "open manual", "-"],
+        ]
+        await ctx.send(
+            head
+            + "```"
+            + tabulate(playlist_rows, headers=headers)
+            + "\n\nFollowing commands can be used only after selecting a playlist:\n"
+            + tabulate(song_rows, headers=headers)
+            + "```"
+        )
+
+    def addExtraCommands(self):
+        substitute = {
+            "create": ["c"],
+            "delete": ["d"],
+            "select": ["s"],
+            "add": ["a"],
+            "show": ["l"],
+            "play": ["p"],
+            "remove": ["r"],
+            "help": ["h"],
+        }
+
+        for subKey in substitute:
+            for subValue in substitute[subKey]:
+                setattr(playlist, subValue, getattr(playlist, subKey))
 
     async def create(self, ctx, inst, playlist, *args):
         author = str(ctx.author)
+        import re
+
+        pattern = "([a-zA-Z]\w*)"
+        result = re.search(pattern, playlist)
+        if result is None:
+            raise Exception(
+                "Playlist name has to start with an alphabet and can further contain numbers, alphabets and _"
+            )
+        playlist = result.group(1)
+
         if utils.playlistUtils.addPlaylist(author, playlist):
             await ctx.send(f"{author}: playlist created")
         else:
@@ -28,7 +81,7 @@ class playlist(commands.Cog):
     async def delete(self, ctx, inst, playlist, *args):
         author = str(ctx.author)
         if utils.playlistUtils.delPlaylist(author, playlist):
-            await ctx.send(f"{author}: playlist, {playlist} deleted")
+            await ctx.send(f"{author}: playlist, **{playlist}** deleted")
         else:
             await ctx.send(
                 f"{author}: error occured while creating playlist or playlist already exists"
@@ -41,10 +94,10 @@ class playlist(commands.Cog):
             if author in self.details:
                 del self.details[author]
             self.details[author] = ob
-            await ctx.send(f"{author}: has selected playlist, {playlist}")
+            await ctx.send(f"{author}: has selected playlist, **{playlist}**")
         else:
             del ob
-            await ctx.send(f"{author}: playlist, {playlist} doesn't exist")
+            await ctx.send(f"{author}: playlist, **{playlist}** doesn't exist")
 
     async def isPlaylistSelected(self, ctx):
         author = str(ctx.author)
@@ -70,7 +123,7 @@ class playlist(commands.Cog):
             details = self.details[author]
             songs = details.getSongs_()
             if display:
-                msg = f"{author}:'s songs in playlist, {details.playlist}\n"
+                msg = f"{author}:'s songs in playlist, *{details.playlist}*\n"
                 for i, song in enumerate(songs):
                     msg += f"{i+1}. {song['title']} - {song['channel']}\n"
                 await ctx.send(msg)
@@ -79,7 +132,7 @@ class playlist(commands.Cog):
         if option in locals():
             return locals()[option]
         else:
-            raise Exception(f"It's either -{inst} song or -{inst} playlist")
+            raise Exception(f"It's either *{inst} song* or *{inst} playlist*")
 
     async def show(self, ctx, inst, *args):
         await (await self.showOptions(ctx, inst, *args))()
@@ -93,9 +146,9 @@ class playlist(commands.Cog):
         for arg in args:
             song = self.playable.ytsearch(arg)
             if self.details[author].addSong_(song):
-                await ctx.send(f"{author}: \"{song['title']}\" added")
+                await ctx.send(f"{author}: *{song['title']}* added")
             else:
-                await ctx.send(f"{author}: ERROR: \"{song['title']}\" not added")
+                await ctx.send(f"{author}: Error: *{song['title']}* not added")
 
     async def remove(self, ctx, inst, *args):
         author = str(ctx.author)
@@ -118,10 +171,10 @@ class playlist(commands.Cog):
                 details = self.details[author]
                 details.removeSong_(song["id"])
                 await ctx.send(
-                    f"{author}: {song['title']} is removed from playlist, {details.playlist}"
+                    f"{author}: *{song['title']}* is removed from playlist, **{details.playlist}**"
                 )
         except:
-            await ctx.send("Provide integer index")
+            await ctx.send("Provide correct index for the playlist")
 
     async def play(self, ctx, inst, *args):
         author = str(ctx.author)
@@ -133,7 +186,7 @@ class playlist(commands.Cog):
         songs = await showOptionsSong(0)
 
         await ctx.send(
-            f"Playing {author}'s playlist, {self.details[author].playlist}\n"
+            f"Playing {author}'s playlist, **{self.details[author].playlist}**\n"
         )
         for i, song in enumerate(songs):
             await self.playable.playSong(ctx, song["title"])
@@ -151,7 +204,7 @@ class playlist(commands.Cog):
             await getattr(playlist, inst)(self, ctx, *args)
 
         except Exception as e:
-            await playlist.help(ctx, e)
+            await self.error(ctx, e)
 
     @commands.command()
     async def pl(self, ctx, *args):
