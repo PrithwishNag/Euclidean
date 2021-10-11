@@ -67,7 +67,7 @@ class music(commands.Cog):
 
         song = self.ytsearch(search)
         source = await discord.FFmpegOpusAudio.from_probe(
-            executable="C:/ffmpeg/bin/ffmpeg.exe",
+            # executable="C:/ffmpeg/bin/ffmpeg.exe",
             source=song["url"],
             **self.OPTIONS["FFMPEG"],
         )
