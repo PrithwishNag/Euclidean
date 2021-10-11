@@ -21,6 +21,26 @@ class music(commands.Cog):
         self.search_queue = deque()
         self.lock = asyncio.Lock()
 
+    async def help(self, ctx, prefix):
+        title = f"""Euclidean Music"""
+        desc = """Prefix: %s
+        Syntax: &<instruction> <args>
+        Instructions:
+        ```""" % (prefix,)
+        docs = ["connect       connect to a voice channel",
+                "disconnect    disconnect from a voice channel",
+                "play          play song from youtube",
+                "skip          skip the current song",
+                "pause         pause the current song",
+                "resume        resume the current song",
+                "empty         empty the queue of songs",
+                "show          show the queue of songs",]
+        for d in docs:
+            desc += d+"\n"
+        desc += "```"
+        embed = discord.Embed(title=title, description=desc)
+        await ctx.send(embed=embed)
+
     @commands.command()
     async def connect(self, ctx):
         if ctx.author.voice is None:

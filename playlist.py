@@ -1,3 +1,4 @@
+import discord
 from discord.ext import commands
 from database import utils
 from tabulate import tabulate
@@ -30,10 +31,9 @@ class playlist(commands.Cog):
             ["-play   | -p", "play songs in playlist", "-"],
             ["-help   | -h", "open manual", "-"],
         ]
-        await ctx.send(
-            head + "```" + tabulate(playlist_rows, headers=headers) +
-            "\n\nFollowing commands can be used only after selecting a playlist:\n"
-            + tabulate(song_rows, headers=headers) + "```")
+        embed = discord.Embed(title="Euclidean Playlist", 
+        description = head + '```' + tabulate(playlist_rows, headers=headers) + "\n\nFollowing commands can be used only after selecting a playlist:\n" + tabulate(song_rows, headers=headers) + '```')
+        await ctx.send(embed=embed)
 
     def addExtraCommands(self):
         substitute = {
@@ -113,10 +113,12 @@ class playlist(commands.Cog):
             if not playlists:
                 await ctx.send(f"{author}: No playlists found.")
                 return
-            msg = f"{author}'s playlists:\n```"
+            title = f"{author}'s playlists:\n"
+            desc = ""
             for i, pl in enumerate(playlists):
-                msg += f"{i+1}. {pl[0]}\n"
-            await ctx.send(msg+"```")
+                desc += f"{i+1}. {pl[0]}\n"
+            embed = discord.Embed(title=title, description=desc)
+            await ctx.send(embed=embed)
 
         async def song(display=1):
             if not await self.isPlaylistSelected(ctx):
@@ -129,10 +131,13 @@ class playlist(commands.Cog):
                     await ctx.send(
                         f"{author}: No songs in the playlist **{details.playlist}**.")
                     return
-                msg = f"{author}:'s songs in playlist, **{details.playlist}**\n```"
+
+                title = f"{author}'s songs in playlist, **{details.playlist}**\n"
+                desc = ""
                 for i, song in enumerate(songs):
-                    msg += f"{i+1}. {song['title']} - {song['channel']}\n"
-                await ctx.send(msg+"```")
+                    desc += f"{i+1}. {song['title']} - {song['channel']}\n"
+                embed = discord.Embed(title=title, description=desc)
+                await ctx.send(embed=embed)
             return songs
 
         if option in locals():
