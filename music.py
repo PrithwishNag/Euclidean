@@ -12,8 +12,8 @@ class music(commands.Cog):
         self.is_paused = False
         self.OPTIONS = {
             "FFMPEG": {
-                "before_options": "-reconnect 1 -reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 2",  # "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5",
-                "options": "-map 0:a:0 -b:a 4k -vn",
+                "before_options": "-reconnect 1 -reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 2",
+                "options": "-map 0:a:0 -b:a 8k -vn",
             },
             "YDL": {"format": "bestaudio", "noplaylist": "True"},
         }
@@ -24,7 +24,7 @@ class music(commands.Cog):
     @commands.command()
     async def connect(self, ctx):
         if ctx.author.voice is None:
-            await ctx.send("Voice channel join kar re hajjam!")
+            await ctx.send("Please join a voice channel.")
             return 0
         vc = ctx.author.voice.channel
         if ctx.voice_client is None:
@@ -43,7 +43,7 @@ class music(commands.Cog):
     @commands.command()
     async def disconnect(self, ctx):
         if ctx.voice_client is None:
-            await ctx.send("Not connected to be disconected u noob!")
+            await ctx.send("Not connected to be disconected.")
             return
         self.reset()
         await ctx.voice_client.disconnect()
@@ -90,7 +90,7 @@ class music(commands.Cog):
             if not self.vc.is_playing() and not self.is_paused:
                 await self.play_next(ctx)
             else:
-                await ctx.send(f'Added to queue "{search}"')
+                await ctx.send(f'Added to queue *{search}*')
 
     @commands.command()
     async def play(self, ctx, *args):
@@ -110,9 +110,7 @@ class music(commands.Cog):
             self.is_paused = True
             await ctx.send("Paused")
         else:
-            await ctx.send(
-                "Play something noob!"
-            )  # Queue is empty (Nothing is playing)
+            await ctx.send("Play something first.")
 
     @commands.command()
     async def resume(self, ctx):
@@ -121,7 +119,7 @@ class music(commands.Cog):
             self.is_paused = False
             await ctx.send("Resumed")
         else:
-            await ctx.send("Aready playing, you blind?")
+            await ctx.send("Aready playing a queue.")
 
     @commands.command()
     async def skip(self, ctx):
@@ -130,9 +128,7 @@ class music(commands.Cog):
             self.is_paused = False
             await ctx.send("Skipped")
         else:
-            await ctx.send(
-                "Play something noob!"
-            )  # Queue is empty (Nothing is playing)
+            await ctx.send("Play something first.")
 
     @commands.command()
     async def empty(self, ctx):
@@ -141,7 +137,7 @@ class music(commands.Cog):
 
     @commands.command()
     async def show(self, ctx):
-        if self.search_queue == []:
+        if not self.search_queue:
             await ctx.send("Queue is empty")
             return
         await ctx.send("Queue:\n")
