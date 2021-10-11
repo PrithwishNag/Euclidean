@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 import music, playlist
 from database import utils
+from dotenv import load_dotenv
+import os
 
 TOKEN = "ODk0ODA1NTM1MjY0NzM5MzQ5.YVvWmA.8m2QQ_rvN1tq0S7wdG4VEkDjvzI"
 prefix = "&"
@@ -39,4 +41,5 @@ async def help(ctx):
     await ctx.send(docs)
 
 
-client.run(TOKEN)
+load_dotenv(".env")
+client.run(os.getenv("TOKEN"))
