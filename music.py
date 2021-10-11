@@ -13,7 +13,7 @@ class music(commands.Cog):
         self.OPTIONS = {
             "FFMPEG": {
                 "before_options": "-reconnect 1 -reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 2",
-                "options": "-map 0:a:0 -b:a 8k -vn",
+                "options": "-map 0:a:0 -b:a 96k -vn",
             },
             "YDL": {"format": "bestaudio", "noplaylist": "True"},
         }

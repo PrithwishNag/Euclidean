@@ -110,13 +110,13 @@ class playlist(commands.Cog):
 
         async def playlist():
             playlists = utils.playlistUtils.getPlaylists(author)
-            if not playlist:
+            if not playlists:
                 await ctx.send(f"{author}: No playlists found.")
                 return
-            msg = f"{author}'s playlists:\n"
+            msg = f"{author}'s playlists:\n```"
             for i, pl in enumerate(playlists):
                 msg += f"{i+1}. {pl[0]}\n"
-            await ctx.send(msg)
+            await ctx.send(msg+"```")
 
         async def song(display=1):
             if not await self.isPlaylistSelected(ctx):
@@ -129,10 +129,10 @@ class playlist(commands.Cog):
                     await ctx.send(
                         f"{author}: No songs in the playlist **{details.playlist}**.")
                     return
-                msg = f"{author}:'s songs in playlist, *{details.playlist}*\n"
+                msg = f"{author}:'s songs in playlist, **{details.playlist}**\n```"
                 for i, song in enumerate(songs):
                     msg += f"{i+1}. {song['title']} - {song['channel']}\n"
-                await ctx.send(msg)
+                await ctx.send(msg+"```")
             return songs
 
         if option in locals():
@@ -179,9 +179,9 @@ class playlist(commands.Cog):
                 await ctx.send(
                     f"{author}: *{song['title']}* is removed from playlist, **{details.playlist}**"
                 )
-            await ctx.send("\n")
             await self.show(ctx, inst, "song")
-        except:
+        except Exception as e:
+            print(e)
             await ctx.send(f"{author}: Provide correct index for the playlist.")
 
     async def play(self, ctx, inst, *args):

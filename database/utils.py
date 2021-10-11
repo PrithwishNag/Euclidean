@@ -72,7 +72,8 @@ class playlistUtils:
         try:
             c = connection.conn.cursor()
             c.execute(
-                "SELECT playlist_name FROM userplaylist WHERE user_id=?", (author,)
+                """SELECT playlist_name FROM userplaylist WHERE user_id=?
+                ORDER BY inserted_on DESC""", (author,)
             )
             rows = c.fetchall()
             return rows
@@ -197,7 +198,8 @@ class playlistUtils:
             c.execute(
                 """SELECT * FROM song WHERE id IN
                 (SELECT song_id FROM playlistsong WHERE user_playlist_id=
-                (SELECT id FROM userplaylist WHERE user_id=? and playlist_name=?))""",
+                (SELECT id FROM userplaylist WHERE user_id=? and playlist_name=?)
+                ORDER BY inserted_on)""",
                 (
                     self.author,
                     self.playlist,

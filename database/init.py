@@ -25,6 +25,7 @@ def main():
                             id text PRIMARY KEY,
                             user_id text NOT NULL,
                             playlist_name text NOT NULL,
+                            inserted_on timestamp DEFAULT current_timestamp,
                             FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
                             UNIQUE(user_id, playlist_name)
                         );""",
@@ -38,6 +39,7 @@ def main():
                             id text PRIMARY KEY,
                             user_playlist_id text NOT NULL,
                             song_id text NOT NULL,
+                            inserted_on timestamp DEFAULT current_timestamp,
                             FOREIGN KEY (user_playlist_id) REFERENCES userplaylist (id) ON DELETE CASCADE,
                             FOREIGN KEY (song_id) REFERENCES song (id) ON DELETE CASCADE,
                             UNIQUE(user_playlist_id, song_id)
