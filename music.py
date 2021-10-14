@@ -15,7 +15,15 @@ class music(commands.Cog):
                 "before_options": "-reconnect 1 -reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 2",
                 "options": "-map 0:a:0 -b:a 48k -vn",
             },
-            "YDL": {"format": "bestaudio", "noplaylist": "True"},
+            "YDL" : {
+                'format': 'bestaudio/best',
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '192',
+                }],
+            }
+            # "YDL": {"format": "bestaudio", "noplaylist": "True"},
         }
         self.ydl = youtube_dl.YoutubeDL(self.OPTIONS["YDL"])
         self.search_queue = deque()
@@ -86,7 +94,12 @@ class music(commands.Cog):
         self.search_queue.popleft()
 
         searching_msg = await ctx.send("Searching...")
-        song = self.ytsearch(search)
+        song = ""
+        try:
+            song = self.ytsearch(search)
+        except Exception as e: 
+            print(e)
+            await ctx.send(f"Error occured while searching \"{search}\"")
 
         source = await discord.FFmpegOpusAudio.from_probe(
             # executable="C:/ffmpeg/bin/ffmpeg.exe",
@@ -99,14 +112,18 @@ class music(commands.Cog):
 
         playing_msg = await ctx.send(embed=discord.Embed(title="Playing", description=song['title']))
         
+        async def after(err, ctx):
+            await self.play_next(ctx)
+            await playing_msg.delete()
+        
         self.vc.play(
             source,
             after=lambda err: asyncio.run_coroutine_threadsafe(
-                self.play_next(ctx), self.client.loop
+                after(err, ctx), self.client.loop
             ),
         )
 
-    async def playSong(self, ctx, search):
+    async def playSong(self, ctx, search, display=True):
         if ctx.voice_client is None and not await self.connect(ctx):
             return False
 
@@ -115,7 +132,7 @@ class music(commands.Cog):
         async with self.lock:
             if not self.vc.is_playing() and not self.is_paused:
                 await self.play_next(ctx)
-            else:
+            elif display:
                 await ctx.send(f'Added to queue \"{search}\"')
         return True
 
@@ -171,7 +188,8 @@ class music(commands.Cog):
         message = ""
         for i, search in enumerate(self.search_queue):
             message += f'{i+1}. "{search}"\n'
-        await ctx.send(message)
+        embed = discord.Embed(title="Music Queue", description=message)
+        await ctx.send(embed=embed)
 
 
 def setup(client):

@@ -229,8 +229,9 @@ class playlist(commands.Cog):
         songs = self.customisePlay(songs, *args)
 
         for i, song in enumerate(songs):
-            if not await self.playable.playSong(ctx, song["title"]):
+            if not await self.playable.playSong(ctx, song["title"], False):
                 break
+        await self.playable.show(ctx)
 
     @commands.command()
     async def playlist(self, ctx, *args):
