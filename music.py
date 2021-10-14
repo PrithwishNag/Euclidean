@@ -3,7 +3,7 @@ from discord.ext import commands
 import youtube_dl
 from collections import deque
 import asyncio
-
+import time
 
 class music(commands.Cog):
     def __init__(self, client):
@@ -13,7 +13,7 @@ class music(commands.Cog):
         self.OPTIONS = {
             "FFMPEG": {
                 "before_options": "-reconnect 1 -reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 2",
-                "options": "-map 0:a:0 -b:a 96k -vn",
+                "options": "-map 0:a:0 -b:a 48k -vn",
             },
             "YDL": {"format": "bestaudio", "noplaylist": "True"},
         }
@@ -85,14 +85,20 @@ class music(commands.Cog):
         search = self.search_queue[0]
         self.search_queue.popleft()
 
+        searching_msg = await ctx.send("Searching...")
         song = self.ytsearch(search)
+
         source = await discord.FFmpegOpusAudio.from_probe(
             # executable="C:/ffmpeg/bin/ffmpeg.exe",
             source=song["url"],
             **self.OPTIONS["FFMPEG"],
         )
 
-        await ctx.send(f"Playing \"{song['title']}\" - {song['channel']}")
+        await asyncio.sleep(1) # Stablization
+        await searching_msg.delete() # Search Complete
+
+        playing_msg = await ctx.send(embed=discord.Embed(title="Playing", description=song['title']))
+        
         self.vc.play(
             source,
             after=lambda err: asyncio.run_coroutine_threadsafe(
@@ -110,7 +116,7 @@ class music(commands.Cog):
             if not self.vc.is_playing() and not self.is_paused:
                 await self.play_next(ctx)
             else:
-                await ctx.send(f'Added to queue *{search}*')
+                await ctx.send(f'Added to queue \"{search}\"')
         return True
 
     @commands.command()

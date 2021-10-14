@@ -1,9 +1,10 @@
+import os
 import discord
 from discord.ext import commands
-import music, playlist
 from database import utils
 from dotenv import load_dotenv
-import os
+import music, playlist
+from server import server
 
 prefix = "&"
 client = commands.Bot(command_prefix=prefix, intents=discord.Intents.all(), help_command=None)
@@ -23,4 +24,5 @@ utils.connection.initiate(database)
 
 # Environment Token and Run
 load_dotenv(".env")
+server()
 client.run(os.getenv("TOKEN"))
